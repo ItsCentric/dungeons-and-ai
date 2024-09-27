@@ -9,3 +9,9 @@ export const anonymousSignInSchema = z.object({
 });
 
 export type AnonymousSignInSchema = z.infer<typeof anonymousSignInSchema>;
+
+export const createRoomSchema = z.object({
+	game_id: z.string().uuid().optional()
+});
+
+export type CreateRoomSchema = z.infer<typeof createRoomSchema>;
