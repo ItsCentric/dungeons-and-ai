@@ -41,15 +41,22 @@ export const actions = {
 			}
 			game_id = data.id;
 		}
-		const { data, error } = await supabase
+		const { data: room, error: insertRoomError } = await supabase
 			.from('rooms')
 			.insert({ game_id, host: user?.id })
 			.select('id')
 			.single();
-		if (error) {
-			console.error(error);
+		if (insertRoomError) {
+			console.error(insertRoomError);
 			return fail(500, { form });
 		}
-		redirect(303, `/room/${data.id}`);
+		const { error: joinRoomError } = await supabase
+			.from('players')
+			.insert({ user_id: user?.id, room_id: room.id });
+		if (joinRoomError) {
+			console.error(joinRoomError);
+			return fail(500, { form });
+		}
+		redirect(303, `/room/${room.id}`);
 	}
 } satisfies Actions;

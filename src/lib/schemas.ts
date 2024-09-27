@@ -15,3 +15,9 @@ export const createRoomSchema = z.object({
 });
 
 export type CreateRoomSchema = z.infer<typeof createRoomSchema>;
+
+export const joinRoomSchema = z.object({
+	room_id: z.string().uuid()
+});
+
+export type JoinRoomSchema = z.infer<typeof joinRoomSchema>;
