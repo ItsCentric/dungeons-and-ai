@@ -33,14 +33,6 @@
 			.on('broadcast', { event: 'player_leave' }, async ({ payload }) => {
 				if (payload.user_id === room.host) {
 					console.log('host disconnected');
-					const { error: deleteRoomError } = await supabase
-						.from('rooms')
-						.delete()
-						.eq('id', room.id);
-					if (deleteRoomError) {
-						console.error(deleteRoomError);
-						return;
-					}
 					goto('/');
 					return;
 				}
@@ -52,14 +44,22 @@
 		};
 	});
 	async function handleLeave() {
-		const { error: leaveError } = await supabase
-			.from('players')
-			.delete()
-			.eq('room_id', room.id)
-			.eq('user_id', user?.id);
-		if (leaveError) {
-			console.error(leaveError);
-			return;
+		if (user?.id !== room.host) {
+			const { error: leaveError } = await supabase
+				.from('players')
+				.delete()
+				.eq('room_id', room.id)
+				.eq('user_id', user?.id);
+			if (leaveError) {
+				console.error(leaveError);
+				return;
+			}
+		} else {
+			const { error: deleteRoomError } = await supabase.from('rooms').delete().eq('id', room.id);
+			if (deleteRoomError) {
+				console.error(deleteRoomError);
+				return;
+			}
 		}
 		roomChannel?.send({ type: 'broadcast', event: 'player_leave', payload: { user_id: user?.id } });
 		goto('/');
