@@ -30,7 +30,20 @@
 					players = [...players, { id: newPlayerData.id, username: newPlayerData.username }];
 				}
 			)
-			.on('broadcast', { event: 'player_leave' }, ({ payload }) => {
+			.on('broadcast', { event: 'player_leave' }, async ({ payload }) => {
+				if (payload.user_id === room.host) {
+					console.log('host disconnected');
+					const { error: deleteRoomError } = await supabase
+						.from('rooms')
+						.delete()
+						.eq('id', room.id);
+					if (deleteRoomError) {
+						console.error(deleteRoomError);
+						return;
+					}
+					goto('/');
+					return;
+				}
 				players = players.filter((player) => player.id !== payload.user_id);
 			})
 			.subscribe();
