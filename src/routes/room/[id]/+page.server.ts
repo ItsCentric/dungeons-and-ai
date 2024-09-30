@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -11,16 +11,34 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (roomError) {
 		return error(500, roomError.message);
 	}
-	const { data: initialPlayers, error: initialPlayersError } = await supabase
+	const { data: roomPlayersData, error: roomPlayersError } = await supabase
 		.from('players')
-		.select('user_id')
+		.select('users (id, username)')
 		.eq('room_id', params.id);
-	if (initialPlayersError) {
-		return error(500, initialPlayersError.message);
+	if (roomPlayersError) {
+		return error(500, roomPlayersError.message);
 	}
+	const roomPlayers = roomPlayersData.map(
+		({ users }) => users as unknown as { id: string; username: string }
+	);
 
 	return {
 		room,
-		initialPlayers
+		roomPlayers
 	};
 };
+
+export const actions = {
+	leave: async ({ params, locals }) => {
+		const { supabase, user } = locals;
+		const { error: leaveError } = await supabase
+			.from('players')
+			.delete()
+			.eq('room_id', params.id)
+			.eq('user_id', user?.id);
+		if (leaveError) {
+			return error(500, leaveError.message);
+		}
+		return redirect(303, '/');
+	}
+} satisfies Actions;
