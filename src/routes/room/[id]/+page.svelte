@@ -4,6 +4,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { goto } from '$app/navigation';
 	import type { RealtimeChannel } from '@supabase/supabase-js';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 	const { room, supabase, roomPlayers, user } = data;
@@ -67,12 +68,15 @@
 </script>
 
 <main>
-	<p>room id: {room.id}</p>
 	<p>players:</p>
 	<ul>
 		{#each players as player}
 			<li>{player.username}</li>
 		{/each}
 	</ul>
+	<br />
+	<p>{`${$page.url.origin}/room/join/${room.id}`}</p>
+	<p>share this link with your friends to join the room</p>
+	<br />
 	<Button on:click={handleLeave} variant="secondary">Leave</Button>
 </main>

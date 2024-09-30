@@ -24,6 +24,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions = {
 	default: async (event) => {
 		const { supabase, user } = event.locals;
+		const { fetch } = event;
 		const form = await superValidate(event, zod(createRoomSchema));
 		if (!form.valid) {
 			return fail(400, { form });
@@ -50,11 +51,10 @@ export const actions = {
 			console.error(insertRoomError);
 			return fail(500, { form });
 		}
-		const { error: joinRoomError } = await supabase
-			.from('players')
-			.insert({ user_id: user?.id, room_id: room.id });
-		if (joinRoomError) {
-			console.error(joinRoomError);
+		const joinRoomResponse = await fetch(`/api/room/join/${room.id}`, {
+			method: 'POST'
+		});
+		if (!joinRoomResponse.ok) {
 			return fail(500, { form });
 		}
 		redirect(303, `/room/${room.id}`);
